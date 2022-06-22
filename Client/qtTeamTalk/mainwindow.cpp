@@ -1550,7 +1550,10 @@ void MainWindow::clienteventUserAudioBlock(int source, StreamTypes streamtypes)
     {
         if (m_relayvoice_userid == source || m_relaymediafile_userid == source)
         {
-            TT_InsertAudioBlock(ttInst, block);
+            if (!TT_InsertAudioBlock(ttInst, block))
+            {
+                qDebug() << "Failed to insert audioblock";
+            }
         }
         TT_ReleaseUserAudioBlock(ttInst, block);
     }
@@ -2200,27 +2203,7 @@ void MainWindow::hotkeyToggle(HotKeyID id, bool active)
     switch(id)
     {
     case HOTKEY_PUSHTOTALK :
-        if (ttSettings->value(SETTINGS_GENERAL_PUSHTOTALKLOCK,
-                              SETTINGS_GENERAL_PUSHTOTALKLOCK_DEFAULT).toBool())
-        {
-            if (active)
-            {
-                bool tx = (TT_GetFlags(ttInst) & CLIENT_TX_VOICE) != CLIENT_CLOSED;
-                TT_EnableVoiceTransmission(ttInst, !tx);
-                emit(updateMyself());
-                playSoundEvent(SOUNDEVENT_HOTKEY);
-                if (!tx)
-                    transmitOn(STREAMTYPE_VOICE);
-            }
-        }
-        else
-        {
-            TT_EnableVoiceTransmission(ttInst, active);
-            emit(updateMyself());
-            playSoundEvent(SOUNDEVENT_HOTKEY);
-            if (active)
-                transmitOn(STREAMTYPE_VOICE);
-        }
+        pttHotKey(active);
         break;
     case HOTKEY_VOICEACTIVATION :
         if(active)
@@ -2269,6 +2252,39 @@ void MainWindow::hotkeyToggle(HotKeyID id, bool active)
         break;
     }
 }
+
+void MainWindow::pttHotKey(bool active)
+{
+    bool pttfail = false;
+    if (ttSettings->value(SETTINGS_GENERAL_PUSHTOTALKLOCK,
+                          SETTINGS_GENERAL_PUSHTOTALKLOCK_DEFAULT).toBool())
+    {
+        if (active)
+        {
+            bool tx = (TT_GetFlags(ttInst) & CLIENT_TX_VOICE) != CLIENT_CLOSED;
+            pttfail = !TT_EnableVoiceTransmission(ttInst, !tx);
+            emit(updateMyself());
+            playSoundEvent(SOUNDEVENT_HOTKEY);
+            if (!tx)
+                transmitOn(STREAMTYPE_VOICE);
+        }
+    }
+    else
+    {
+        pttfail = !TT_EnableVoiceTransmission(ttInst, active) && active;
+        emit(updateMyself());
+        playSoundEvent(SOUNDEVENT_HOTKEY);
+        if (active)
+            transmitOn(STREAMTYPE_VOICE);
+    }
+
+    // PTT will e.g. fail during audio stream relay
+    if (pttfail)
+    {
+        addStatusMsg(STATUSBAR_BYPASS, tr("Voice transmission failed"));
+    }
+}
+
 
 void MainWindow::timerEvent(QTimerEvent *event)
 {
@@ -4824,7 +4840,7 @@ void MainWindow::slotUsersAdvancedRelayUserMediaFile(bool checked/* = false*/)
             tr("To relay media file stream from other channel you must enable subscription \"Intercept Media File\".\n"
                 "Do you wish to to do this now?"), QMessageBox::No | QMessageBox::Yes) == QMessageBox::Yes)
         {
-            slotUsersSubscriptionsInterceptVoice(checked);
+            slotUsersSubscriptionsInterceptMediaFile(checked);
         }
     }
 
@@ -5690,6 +5706,8 @@ void MainWindow::slotUpdateUI()
     bool me_admin = (TT_GetMyUserType(ttInst) & USERTYPE_ADMIN);
     bool me_op = TT_IsChannelOperator(ttInst, TT_GetMyUserID(ttInst), user_chanid);
     bool tts = ttSettings->value(SETTINGS_TTS_ENGINE, SETTINGS_TTS_ENGINE_DEFAULT).toUInt() != TTSENGINE_NONE;
+    bool voiceactivated = (statemask & CLIENT_SNDINPUT_VOICEACTIVATED);
+    bool voicetx = (statemask & CLIENT_TX_VOICE);
 
     ui.actionConnect->setChecked( (statemask & CLIENT_CONNECTING) || (statemask & CLIENT_CONNECTED));
     ui.actionEnableEchoCancel->setChecked(ttSettings->value(SETTINGS_SOUND_ECHOCANCEL, SETTINGS_SOUND_ECHOCANCEL_DEFAULT).toBool());
@@ -5702,7 +5720,7 @@ void MainWindow::slotUpdateUI()
 #elif defined(Q_OS_LINUX) || defined(Q_OS_DARWIN)
     ui.actionEnablePushToTalk->setChecked(m_hotkeys.find(HOTKEY_PUSHTOTALK) != m_hotkeys.end());
 #endif
-    ui.actionEnableVoiceActivation->setChecked(statemask & CLIENT_SNDINPUT_VOICEACTIVATED);
+    ui.actionEnableVoiceActivation->setChecked(voiceactivated);
     ui.actionHearMyself->setEnabled(m_mychannel.nChannelID > 0);
     User myself;
     if (ui.channelsWidget->getUser(TT_GetMyUserID(ttInst), myself))
@@ -5776,9 +5794,9 @@ void MainWindow::slotUpdateUI()
     ui.actionLowerMediaFileVolume->setEnabled(userid>0 && user.nVolumeMediaFile > SOUND_VOLUME_MIN);
     ui.actionStoreForMove->setEnabled(userid>0 && (userrights & USERRIGHT_MOVE_USERS));
     ui.actionMoveUser->setEnabled(m_moveusers.size() && (userrights & USERRIGHT_MOVE_USERS));
-    ui.actionRelayVoiceStream->setEnabled(userid > 0);
+    ui.actionRelayVoiceStream->setEnabled(userid > 0 && !voiceactivated && !voicetx);
     ui.actionRelayVoiceStream->setChecked(userid > 0 && userid == m_relayvoice_userid);
-    ui.actionRelayMediaFileStream->setEnabled(userid > 0);
+    ui.actionRelayMediaFileStream->setEnabled(userid > 0 && !voiceactivated && !voicetx);
     ui.actionRelayMediaFileStream->setChecked(userid > 0 && userid == m_relaymediafile_userid);
 
     //ui.actionMuteAll->setEnabled(statemask & CLIENT_SOUND_READY);
