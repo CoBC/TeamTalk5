@@ -25,11 +25,19 @@
 #define UTILSOUND_H
 
 #include "common.h"
+#include "settings.h"
 
 #include <QVector>
 #include <QString>
 #include <QStringList>
-
+#include <QSettings>
+#if defined(QT_MULTIMEDIA_LIB)
+#if QT_VERSION >= QT_VERSION_CHECK(6,0,0)
+#include <QSoundEffect>
+extern QSettings* ttSettings;
+static QSoundEffect* effect = new QSoundEffect(ttSettings);
+#endif /* QT_VERSION_CHECK */
+#endif /* QT_MULTIMEDIA_LIB */
 QVector<SoundDevice> getSoundDevices();
 bool getSoundDevice(int deviceid, const QVector<SoundDevice>& devs, SoundDevice& dev);
 bool getSoundDevice(const QString& devid, bool input, const QVector<SoundDevice>& devs, SoundDevice& dev);
@@ -87,6 +95,7 @@ enum SoundEvent
 };
 
 void playSoundEvent(SoundEvent event);
+void playNextSoundEvent(SoundEvent event);
 void resetDefaultSoundsPack();
 
 #endif

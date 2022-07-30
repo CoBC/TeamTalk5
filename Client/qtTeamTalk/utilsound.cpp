@@ -22,22 +22,17 @@
  */
 
 #include "utilsound.h"
-#include "settings.h"
 
 #include <math.h>
 
-#include <QSettings>
 #include <QDebug>
 
 #if defined(QT_MULTIMEDIA_LIB)
 #if QT_VERSION < QT_VERSION_CHECK(6,0,0)
 #include <QSound>
-#else
-#include <QSoundEffect>
 #endif /* QT_VERSION_CHECK */
 #endif /* QT_MULTIMEDIA_LIB */
 
-extern QSettings* ttSettings;
 extern TTInstance* ttInst;
 
 QVector<SoundDevice> getSoundDevices()
@@ -463,14 +458,24 @@ void playSoundEvent(SoundEvent event)
 #if QT_VERSION < QT_VERSION_CHECK(6,0,0)
             QSound::play(filename);
 #else
-            static QSoundEffect* effect = new QSoundEffect(ttSettings);
-            effect->setSource(QUrl::fromLocalFile(filename));
-            effect->setVolume(ttSettings->value(SETTINGS_SOUNDEVENT_VOLUME, SETTINGS_SOUNDEVENT_VOLUME_DEFAULT).toInt()/100.0);
-            effect->play();
+    if (effect->isPlaying())
+    {
+/*        static QSoundEffect* QString(filename).toString() = new QSoundEffect(ttSettings);
+            QString(filename).toString()->setSource(QUrl::fromLocalFile(filename));
+            QString(filename).toString()->setVolume(ttSettings->value(SETTINGS_SOUNDEVENT_VOLUME, SETTINGS_SOUNDEVENT_VOLUME_DEFAULT).toInt()/100.0);
+            QString(filename).toString()->play();*/
+        connect(effect, SIGNAL(playingChanged()), SLOT(playNextSoundEvent(event)));
+    }
 #endif
         }
 #endif
     }
+}
+
+void playNextSoundEvent(SoundEvent event)
+{
+    if (effect->isPlaying() == false)
+        playSoundEvent(event);
 }
 
 void resetDefaultSoundsPack()
