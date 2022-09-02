@@ -29,7 +29,9 @@
 #include "common.h"
 
 #ifdef Q_OS_LINUX
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
 #include <QX11Info>
+#endif
 #endif
 
 class DesktopShareDlg : public QDialog

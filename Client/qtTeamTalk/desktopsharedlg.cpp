@@ -29,7 +29,9 @@
 #include <QPushButton>
 
 #if defined(Q_OS_LINUX)
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
 #include <X11/Xlib.h>
+#endif
 #endif
 
 extern QSettings* ttSettings;
@@ -84,6 +86,7 @@ DesktopShareDlg::DesktopShareDlg(QWidget* parent)
                                        .arg(wnd.nHeight), (qint64)wnd.nWindowID);
     }
 #elif defined(Q_OS_LINUX)
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
     //TODO: X11, share specific window
     // if(m_display)
     // {
@@ -113,6 +116,7 @@ DesktopShareDlg::DesktopShareDlg(QWidget* parent)
     //     if(children)
     //         XFree(children);
     // }
+#endif
 #endif
 
     QSortFilterProxyModel* proxy = new QSortFilterProxyModel(ui.windowComboBox);

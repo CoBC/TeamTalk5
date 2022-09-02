@@ -76,8 +76,10 @@
 #endif
 
 #ifdef Q_OS_LINUX //For hotkeys on X11
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#endif
 #endif
 
 #include <functional>
@@ -3216,6 +3218,7 @@ void MainWindow::restartSendDesktopWindowTimer()
 QRect MainWindow::getSharedWindowRect()
 {
 #if defined(Q_OS_LINUX)
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
     //TODO: X11, get active window (this only handles entire desktop)
 
     if(!m_display)
@@ -3225,7 +3228,7 @@ QRect MainWindow::getSharedWindowRect()
     Status s = XGetWindowAttributes(m_display, m_nWindowShareWnd, &attr);
     if(s)
         return QRect(attr.x, attr.y, attr.x + attr.width, attr.y + attr.height);
-
+#endif
 #elif defined(Q_OS_DARWIN)
     ShareWindow wnd = {};
 
@@ -3532,7 +3535,7 @@ void MainWindow::enableHotKey(HotKeyID id, const hotkey_t& hk)
     TT_HotKey_Register(ttInst, id, &hk[0], hk.size());
 
 #elif defined(Q_OS_LINUX)
-
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
     Display* display = QX11Info::display();
     Window x11window = QX11Info::appRootWindow();
 
@@ -3570,7 +3573,7 @@ void MainWindow::enableHotKey(HotKeyID id, const hotkey_t& hk)
     XGrabKey(display, keycode, mods, x11window, owner, pointer, keyboard);
     // allow numlock
     XGrabKey(display, keycode, mods | Mod2Mask, x11window, owner, pointer, keyboard);
-
+#endif
 #elif defined(Q_OS_DARWIN)
 
     if(hk.empty() || hk.size() != MAC_HOTKEY_SIZE)
@@ -3616,7 +3619,7 @@ void MainWindow::disableHotKey(HotKeyID id)
     TT_HotKey_Unregister(ttInst, id);
 
 #elif defined(Q_OS_LINUX)
-
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
     Display* display = QX11Info::display();
     Window window = QX11Info::appRootWindow();
 
@@ -3651,7 +3654,7 @@ void MainWindow::disableHotKey(HotKeyID id)
     }
 
     m_hotkeys.remove(id);
-
+#endif
 #elif defined(Q_OS_DARWIN)
 
     reghotkeys_t::iterator i = m_hotkeys.find(id);
@@ -3670,6 +3673,7 @@ void MainWindow::disableHotKey(HotKeyID id)
 #if defined(Q_OS_LINUX)
 void MainWindow::executeDesktopInput(const DesktopInput& input)
 {
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
     //TODO: X11, mouse held down for selection (e.g. text in edit field)
     //TODO: X11, key strokes
 
@@ -3737,6 +3741,7 @@ void MainWindow::executeDesktopInput(const DesktopInput& input)
         XSendEvent(m_display, PointerWindow, True, 0, &event);
         XFlush(m_display);
     }
+#endif
 }
 #endif
 
@@ -4460,6 +4465,7 @@ void MainWindow::slotMeEnableDesktopSharing(bool checked/*=false*/)
     if(checked)
     {
 #if defined(Q_OS_LINUX)
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
         if(!m_display)
             m_display = XOpenDisplay(0);
 
@@ -4468,6 +4474,7 @@ void MainWindow::slotMeEnableDesktopSharing(bool checked/*=false*/)
                                   tr("Failed to open X11 display."));
 
         DesktopShareDlg dlg(m_display, this);
+#endif
 #else
         DesktopShareDlg dlg(this);
 #endif

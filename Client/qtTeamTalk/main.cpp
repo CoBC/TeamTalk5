@@ -100,8 +100,10 @@ public:
 #elif defined(Q_OS_LINUX)
 
 //For hotkeys on X11
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
 #include <QX11Info>
 #include <X11/Xlib.h>
+#endif
 
 #if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
 #include <xcb/xcb.h> // used by Qt5
@@ -200,7 +202,7 @@ public:
         installNativeEventFilter(this);
 #endif
     }
-
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
     bool x11EventFilter ( XEvent * event )
     {
         if(event->type == KeyPress || event->type == KeyRelease)
@@ -251,6 +253,7 @@ public:
         return QApplication::x11EventFilter(event);
 #endif
     }
+#endif
     MainWindow* m_mainwindow;
 };
 

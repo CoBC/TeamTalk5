@@ -44,7 +44,9 @@
 #endif
 
 #ifdef Q_OS_LINUX
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
 #include <QX11Info>
+#endif
 #endif
 
 //Commands which we're interested in knowning when have completed
@@ -111,8 +113,10 @@ public:
                             CommandComplete cmd_type);
 
 #ifdef Q_OS_LINUX
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
     //X11 hotkeys
     void keysActive(quint32 keycode, quint32 mods, bool active);
+#endif
 #endif
 
     void hotkeyToggle(HotKeyID id, bool active);

@@ -480,8 +480,10 @@ void UserDesktopWidget::translateSend(const DesktopInput& deskinput)
 #elif defined(Q_OS_DARWIN)
     key_trans = TTKEY_MACKEYCODE_TO_TTKEYCODE;
 #elif defined(Q_OS_LINUX)
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
     //TODO: X11, key translate
     qDebug() << "No key translate for X11";
+#endif
 #endif
 #endif /* ENABLE_KEY_TRANSLATION */
 
