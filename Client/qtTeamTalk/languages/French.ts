@@ -5666,13 +5666,13 @@ Vous pouvez la télécharger sur la page suivante:<byte value="xd"/>
         <location filename="../serverlistdlg.cpp" line="627"/>
         <location filename="../serverlistdlg.cpp" line="751"/>
         <source>&amp;Yes</source>
-        <translation type="unfinished">&amp;Oui</translation>
+        <translation>&amp;Oui</translation>
     </message>
     <message>
         <location filename="../serverlistdlg.cpp" line="628"/>
         <location filename="../serverlistdlg.cpp" line="752"/>
         <source>&amp;No</source>
-        <translation type="unfinished">&amp;Non</translation>
+        <translation>&amp;Non</translation>
     </message>
     <message>
         <location filename="../serverlistdlg.cpp" line="659"/>
@@ -6899,7 +6899,7 @@ Supprimez le compte utilisateur publié pour désinscrire votre serveur.</transl
     <message>
         <location filename="../textmessage.ui" line="136"/>
         <source>&amp;Close</source>
-        <translation type="unfinished">&amp;Fermer</translation>
+        <translation>&amp;Fermer</translation>
     </message>
     <message>
         <location filename="../textmessagedlg.cpp" line="139"/>
@@ -6909,10 +6909,6 @@ Supprimez le compte utilisateur publié pour désinscrire votre serveur.</transl
         <translation>Nouveau message</translation>
     </message>
     <message>
-        <source>&amp;Cancel</source>
-        <translation type="vanished">&amp;Annuler</translation>
-    </message>
-    <message>
         <location filename="../textmessage.ui" line="117"/>
         <source>&amp;Send</source>
         <translation>&amp;Envoyer</translation>
@@ -6920,7 +6916,7 @@ Supprimez le compte utilisateur publié pour désinscrire votre serveur.</transl
     <message>
         <location filename="../textmessagedlg.cpp" line="95"/>
         <source>Private chat with %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Discussion privée avec %1</translation>
     </message>
     <message>
         <location filename="../textmessagedlg.cpp" line="179"/>
