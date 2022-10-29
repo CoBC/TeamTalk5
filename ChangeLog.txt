@@ -7,6 +7,7 @@ Default Qt Client
 - Text message window is only focused if main window has focus when receiving a private message
 - Option in "Change status" dialog to display file name as status msg when streaming
 - Sound event when intercepted
+- Option to change status message when idle
 Accessible Windows Client
 -
 Android Client
