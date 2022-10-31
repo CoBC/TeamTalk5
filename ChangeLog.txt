@@ -10,6 +10,7 @@ Default Qt Client
 - Option to change status message when idle
 - Fix user text message sent and channel message sent sound not reset when changing sounds pack
 - Use absolute file path when changing sound pack
+- See selected order on "Files list", "User account" dialog and "Server list" dialog context menu
 Accessible Windows Client
 -
 Android Client
