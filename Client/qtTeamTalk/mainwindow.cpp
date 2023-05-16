@@ -2012,6 +2012,8 @@ void MainWindow::connectToServer()
                    m_host.udpport, localtcpport, localudpport, m_host.encrypted))
         addStatusMsg(STATUSBAR_BYPASS, tr("Failed to connect to %1 TCP port %2 UDP port %3")
                      .arg(m_host.ipaddr).arg(m_host.tcpport).arg(m_host.udpport));
+    if(timerExists(TIMER_RECONNECT))
+        killLocalTimer(TIMER_RECONNECT);
 }
 
 void MainWindow::disconnectFromServer()
