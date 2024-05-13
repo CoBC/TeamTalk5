@@ -45,6 +45,7 @@
 #include "utilvideo.h"
 #include "utiltts.h"
 #include "utilxml.h"
+#include "moveusersdlg.h"
 
 #include <QMessageBox>
 #include <QInputDialog>
@@ -440,6 +441,8 @@ MainWindow::MainWindow(const QString& cfgfile)
             this, &MainWindow::slotUsersAdvancedStoreForMove);
     connect(ui.actionMoveUser, &QAction::triggered,
             this, &MainWindow::slotUsersAdvancedMoveUsers);
+    connect(ui.actionMoveUsersDialog, &QAction::triggered,
+            this, &MainWindow::slotUsersAdvancedMoveUsersDialog);
     connect(ui.actionAllowChannelTextMessages, &QAction::triggered,
             this, &MainWindow::slotUsersAdvancedChanMsgAllowed);
     connect(ui.actionAllowVoiceTransmission, &QAction::triggered,
@@ -5046,6 +5049,34 @@ void MainWindow::slotUsersAdvancedMoveUsers()
     m_moveusers.clear();
 }
 
+void MainWindow::slotUsersAdvancedMoveUsersDialog()
+{
+    int chanid;
+    MoveUsersDlg dlg(ui.channelsWidget->getUsers(), ui.channelsWidget->getChannels());
+    if (dlg.exec() == QDialog::Accepted)
+    {
+        m_moveusers = dlg.getSelectedUserIds();
+        chanid = dlg.getSelectedChannelId();
+        for(int i=0;i<m_moveusers.size();i++)
+            TT_DoMoveUser(ttInst, m_moveusers[i], chanid);
+    }
+    Channel chan;
+    TT_GetChannel(ttInst, chanid, &chan);
+    QString usersmoved;
+    if(chan.nParentID == 0)
+    {
+        QString rootchan = tr("root");
+        usersmoved = tr("Selected users has been moved to channel %1").arg(rootchan);
+    }
+    else
+    {
+        usersmoved = tr("Selected users has been moved to channel %1").arg(chan.szName);
+    }
+    addTextToSpeechMessage(TTS_MENU_ACTIONS, usersmoved);
+    slotUpdateUI();
+    m_moveusers.clear();
+}
+
 void MainWindow::slotUsersAdvancedChanMsgAllowed(bool checked/*=false*/)
 {
     if (QObject::sender() == ui.actionAllowChannelTextMessages)
@@ -6172,6 +6203,7 @@ void MainWindow::slotUpdateUI()
     ui.actionLowerMediaFileVolume->setEnabled(userid>0 && user.nVolumeMediaFile > SOUND_VOLUME_MIN);
     ui.actionStoreForMove->setEnabled(userid>0 && (userrights & USERRIGHT_MOVE_USERS));
     ui.actionMoveUser->setEnabled(m_moveusers.size() && (userrights & USERRIGHT_MOVE_USERS));
+    ui.actionMoveUsersDialog->setEnabled(userrights & USERRIGHT_MOVE_USERS);
     ui.actionRelayVoiceStream->setEnabled(userid > 0 && !voiceactivated && !voicetx);
     ui.actionRelayVoiceStream->setChecked(userid > 0 && userid == m_relayvoice_userid);
     ui.actionRelayMediaFileStream->setEnabled(userid > 0 && !voiceactivated && !voicetx);
