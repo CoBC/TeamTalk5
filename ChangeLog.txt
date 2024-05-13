@@ -9,6 +9,7 @@ Default Qt Client
 - Locale file size now also use in "file transfer" dialog
 - "Check for Update" in "Help" menu
 - "Move Users" dialog
+- Ability to join Last Joined Channel for each server individually
 Android Client
 -
 iOS Client
