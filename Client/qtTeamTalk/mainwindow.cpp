@@ -5086,34 +5086,6 @@ void MainWindow::moveUsersToChannel(int chanid)
     m_moveusers.clear();
 }
 
-void MainWindow::slotUsersAdvancedMoveUsersDialog()
-{
-    int chanid;
-    MoveUsersDlg dlg(ui.channelsWidget->getUsers(), ui.channelsWidget->getChannels());
-    if (dlg.exec() == QDialog::Accepted)
-    {
-        m_moveusers = dlg.getSelectedUserIds();
-        chanid = dlg.getSelectedChannelId();
-        for(int i=0;i<m_moveusers.size();i++)
-            TT_DoMoveUser(ttInst, m_moveusers[i], chanid);
-    }
-    Channel chan;
-    TT_GetChannel(ttInst, chanid, &chan);
-    QString usersmoved;
-    if(chan.nParentID == 0)
-    {
-        QString rootchan = tr("root");
-        usersmoved = tr("Selected users has been moved to channel %1").arg(rootchan);
-    }
-    else
-    {
-        usersmoved = tr("Selected users has been moved to channel %1").arg(chan.szName);
-    }
-    addTextToSpeechMessage(TTS_MENU_ACTIONS, usersmoved);
-    slotUpdateUI();
-    m_moveusers.clear();
-}
-
 void MainWindow::slotUsersAdvancedChanMsgAllowed(bool checked/*=false*/)
 {
     if (QObject::sender() == ui.actionAllowChannelTextMessages)
