@@ -5345,13 +5345,13 @@ void MainWindow::startStreamMediaFile()
     fileName = fileName.remove('"');
 #endif
 
-    m_videocodec = {};
-    m_videocodec.nCodec = (Codec)ttSettings->value(SETTINGS_STREAMMEDIA_CODEC).toInt();
-    switch(m_videocodec.nCodec)
+    m_mfp_videocodec = {};
+    m_mfp_videocodec.nCodec = (Codec)ttSettings->value(SETTINGS_STREAMMEDIA_CODEC).toInt();
+    switch(m_mfp_videocodec.nCodec)
     {
     case WEBM_VP8_CODEC :
-        m_videocodec.webm_vp8.nRcTargetBitrate = ttSettings->value(SETTINGS_STREAMMEDIA_WEBMVP8_BITRATE).toInt();
-        m_videocodec.webm_vp8.nEncodeDeadline = DEFAULT_WEBMVP8_DEADLINE;
+        m_mfp_videocodec.webm_vp8.nRcTargetBitrate = ttSettings->value(SETTINGS_STREAMMEDIA_WEBMVP8_BITRATE).toInt();
+        m_mfp_videocodec.webm_vp8.nEncodeDeadline = DEFAULT_WEBMVP8_DEADLINE;
         break;
     default :
         break;
@@ -5363,7 +5363,7 @@ void MainWindow::startStreamMediaFile()
     m_mfp.audioPreprocessor = loadAudioPreprocessor(apt);
     m_mfp.bPaused = false;
     m_mfp.uOffsetMSec = ttSettings->value(SETTINGS_STREAMMEDIA_OFFSET, SETTINGS_STREAMMEDIA_OFFSET_DEFAULT).toUInt();
-    if (!TT_StartStreamingMediaFileToChannelEx(ttInst, _W(fileName), &m_mfp, &m_videocodec))
+    if (!TT_StartStreamingMediaFileToChannelEx(ttInst, _W(fileName), &m_mfp, &m_mfp_videocodec))
     {
         QMessageBox::information(this,
                                  MENUTEXT(ui.actionStreamMediaFileToChannel->text()),
@@ -5424,7 +5424,7 @@ void MainWindow::slotPauseResumeStream()
     if (m_mfp.bPaused)
     {
         m_mfp.bPaused = false;
-        if (!TT_UpdateStreamingMediaFileToChannel(ttInst, &m_mfp, &m_videocodec))
+        if (!TT_UpdateStreamingMediaFileToChannel(ttInst, &m_mfp, &m_mfp_videocodec))
         {
             QMessageBox::critical(this, MENUTEXT(ui.actionPauseResumeStream->text()), tr("Failed to resume the stream"));
         }
@@ -5438,7 +5438,7 @@ void MainWindow::slotPauseResumeStream()
     else
     {
         m_mfp.bPaused = true;
-        if (!TT_UpdateStreamingMediaFileToChannel(ttInst, &m_mfp, &m_videocodec))
+        if (!TT_UpdateStreamingMediaFileToChannel(ttInst, &m_mfp, &m_mfp_videocodec))
         {
             QMessageBox::critical(this, MENUTEXT(ui.actionPauseResumeStream->text()), tr("Failed to pause the stream"));
         }
