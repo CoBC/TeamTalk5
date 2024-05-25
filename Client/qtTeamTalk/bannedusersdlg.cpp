@@ -105,24 +105,6 @@ QVariant BannedUsersModel::data ( const QModelIndex & index, int role /*= Qt::Di
             return _Q(m_users[index.row()].szIPAddress);
         }
         break;
-/*        case Qt::AccessibleTextRole :
-        {
-            return QString("%1: %2, %3: %4, %5: %6, %7: %8, %9: %10, %11: %12, %13: %14")
-            .arg(headerData(COLUMN_INDEX_NICKNAME, Qt::Horizontal, Qt::DisplayRole).toString())
-            .arg(data(createIndex(index.row(), COLUMN_INDEX_NICKNAME, index.internalId()), Qt::DisplayRole).toString())
-            .arg(headerData(COLUMN_INDEX_USERNAME, Qt::Horizontal, Qt::DisplayRole).toString())
-            .arg(data(createIndex(index.row(), COLUMN_INDEX_USERNAME, index.internalId()), Qt::DisplayRole).toString())
-            .arg(headerData(COLUMN_INDEX_BANTYPE, Qt::Horizontal, Qt::DisplayRole).toString())
-            .arg(data(createIndex(index.row(), COLUMN_INDEX_BANTYPE, index.internalId()), Qt::DisplayRole).toString())
-            .arg(headerData(COLUMN_INDEX_BANTIME, Qt::Horizontal, Qt::DisplayRole).toString())
-            .arg(data(createIndex(index.row(), COLUMN_INDEX_BANTIME, index.internalId()), Qt::DisplayRole).toString())
-            .arg(headerData(COLUMN_INDEX_OWNER, Qt::Horizontal, Qt::DisplayRole).toString())
-            .arg(data(createIndex(index.row(), COLUMN_INDEX_OWNER, index.internalId()), Qt::DisplayRole).toString())
-            .arg(headerData(COLUMN_INDEX_CHANPATH, Qt::Horizontal, Qt::DisplayRole).toString())
-            .arg(data(createIndex(index.row(), COLUMN_INDEX_CHANPATH, index.internalId()), Qt::DisplayRole).toString())
-            .arg(headerData(COLUMN_INDEX_IPADDRESS, Qt::Horizontal, Qt::DisplayRole).toString())
-            .arg(data(createIndex(index.row(), COLUMN_INDEX_IPADDRESS, index.internalId()), Qt::DisplayRole).toString());
-        }*/
     }
     return QVariant();
 }
@@ -246,14 +228,14 @@ BannedUsersDlg::BannedUsersDlg(const bannedusers_t& bannedusers, const QString& 
     ui.bantypeBox->addItem(tr("Ban IP-address"), BanTypes(BANTYPE_IPADDR));
     ui.bantypeBox->addItem(tr("Ban Username"), BanTypes(BANTYPE_USERNAME));
 
-//    ui.bannedTableView->header()->restoreState(ttSettings->value(SETTINGS_DISPLAY_BANNEDUSERS_HEADERSIZES).toByteArray());
+    ui.bannedTableView->horizontalHeader()->restoreState(ttSettings->value(SETTINGS_DISPLAY_BANNEDUSERS_HEADERSIZES).toByteArray());
     connect(ui.filterButton, &QPushButton::clicked, this, &BannedUsersDlg::filterBanList);
     ui.bannedTableView->setFocus();
 }
 
 BannedUsersDlg::~BannedUsersDlg()
 {
-//    ttSettings->setValue(SETTINGS_DISPLAY_BANNEDUSERS_HEADERSIZES, ui.bannedTableView->header()->saveState());
+    ttSettings->setValue(SETTINGS_DISPLAY_BANNEDUSERS_HEADERSIZES, ui.bannedTableView->horizontalHeader()->saveState());
     ttSettings->setValue(SETTINGS_DISPLAY_BANNEDUSERSWINDOWPOS, saveGeometry());
 }
 
