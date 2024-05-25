@@ -41,37 +41,37 @@ UserAccountsDlg::UserAccountsDlg(const useraccounts_t& useraccounts, QWidget * p
     m_proxyModel = new QSortFilterProxyModel(this);
     m_proxyModel->setSourceModel(m_useraccountsModel);
     m_proxyModel->setSortRole(Qt::UserRole);
-    ui.usersTreeView->setModel(m_proxyModel);
+    ui.usersTableView->setModel(m_proxyModel);
     m_proxyModel->setSortCaseSensitivity(Qt::CaseInsensitive);
     m_proxyModel->sort(COLUMN_INDEX_USERNAME, Qt::AscendingOrder);
 
 #if defined(Q_OS_MAC)
-    auto font = ui.usersTreeView->font();
+    auto font = ui.usersTableView->font();
     font.setPointSize(13);
-    ui.usersTreeView->setFont(font);
+    ui.usersTableView->setFont(font);
 #endif
 
     for(int i=0;i<useraccounts.size();i++)
         m_useraccountsModel->addRegUser(useraccounts[i], i+1 == useraccounts.size());
 
     for(int i=0;i<COLUMN_COUNT_USERACCOUNTS;i++)
-        ui.usersTreeView->resizeColumnToContents(i);
+        ui.usersTableView->resizeColumnToContents(i);
 
     connect(ui.addButton, &QAbstractButton::clicked, this, &UserAccountsDlg::slotAddUser);
-    ui.usersTreeView->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(ui.usersTreeView, &QWidget::customContextMenuRequested,
+    ui.usersTableView->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui.usersTableView, &QWidget::customContextMenuRequested,
             this, &UserAccountsDlg::slotTreeContextMenu);
-    connect(ui.usersTreeView, &QAbstractItemView::doubleClicked, this, &UserAccountsDlg::slotEditUser);
-    ui.usersTreeView->installEventFilter(this);
+    connect(ui.usersTableView, &QAbstractItemView::doubleClicked, this, &UserAccountsDlg::slotEditUser);
+    ui.usersTableView->installEventFilter(this);
 
-    ui.usersTreeView->header()->restoreState(ttSettings->value(SETTINGS_DISPLAY_USERACCOUNTS_HEADERSIZES).toByteArray());
+    ui.usersTableView->horizontalHeader()->restoreState(ttSettings->value(SETTINGS_DISPLAY_USERACCOUNTS_HEADERSIZES).toByteArray());
     restoreGeometry(ttSettings->value(SETTINGS_DISPLAY_USERACCOUNTSDLG_SIZE).toByteArray());
 }
 
 UserAccountsDlg::~UserAccountsDlg()
 {
     ttSettings->setValue(SETTINGS_DISPLAY_USERACCOUNTSDLG_SIZE, saveGeometry());
-    ttSettings->setValue(SETTINGS_DISPLAY_USERACCOUNTS_HEADERSIZES, ui.usersTreeView->header()->saveState());
+    ttSettings->setValue(SETTINGS_DISPLAY_USERACCOUNTS_HEADERSIZES, ui.usersTableView->horizontalHeader()->saveState());
 }
 
 void UserAccountsDlg::slotCmdSuccess(int cmdid)
@@ -114,7 +114,7 @@ void UserAccountsDlg::slotAddUser()
 
 void UserAccountsDlg::slotDelUser()
 {
-    auto proxySelection = ui.usersTreeView->currentIndex();
+    auto proxySelection = ui.usersTableView->currentIndex();
     int index = m_proxyModel->mapToSource(proxySelection).row();
     if (index < 0)
         return;
@@ -134,7 +134,7 @@ void UserAccountsDlg::slotDelUser()
 
 void UserAccountsDlg::slotEditUser()
 {
-    auto proxySelection = ui.usersTreeView->currentIndex();
+    auto proxySelection = ui.usersTableView->currentIndex();
     int index = m_proxyModel->mapToSource(proxySelection).row();
     if (index < 0)
         return;
@@ -149,10 +149,10 @@ void UserAccountsDlg::slotEditUser()
 
 bool UserAccountsDlg::eventFilter(QObject *obj, QEvent *event)
 {
-    if (obj == ui.usersTreeView && event->type() == QEvent::KeyPress)
+    if (obj == ui.usersTableView && event->type() == QEvent::KeyPress)
     {
         QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
-        if ((keyEvent->key() == Qt::Key_Enter || keyEvent->key() == Qt::Key_Return) && ui.usersTreeView->hasFocus())
+        if ((keyEvent->key() == Qt::Key_Enter || keyEvent->key() == Qt::Key_Return) && ui.usersTableView->hasFocus())
         {
             emit(slotEditUser());
             return true;
@@ -163,7 +163,7 @@ bool UserAccountsDlg::eventFilter(QObject *obj, QEvent *event)
 
 void UserAccountsDlg::keyPressEvent(QKeyEvent* e)
 {
-    if (ui.usersTreeView->hasFocus())
+    if (ui.usersTableView->hasFocus())
     {
         if (e->matches(QKeySequence::Delete) || e->key() == Qt::Key_Backspace)
         {
@@ -204,7 +204,7 @@ void UserAccountsDlg::slotTreeContextMenu(const QPoint& /*point*/)
     sortMenu->addAction(sortModified);
     QAction* delUser = menu.addAction(tr("&Delete Selected User"));
     QAction* editUser = menu.addAction(tr("&Edit Selected User"));
-    auto srcIndex = m_proxyModel->mapToSource(ui.usersTreeView->currentIndex());
+    auto srcIndex = m_proxyModel->mapToSource(ui.usersTableView->currentIndex());
     delUser->setEnabled(srcIndex.isValid());
     editUser->setEnabled(srcIndex.isValid());
     if (QAction* action = menu.exec(QCursor::pos()))
@@ -212,22 +212,22 @@ void UserAccountsDlg::slotTreeContextMenu(const QPoint& /*point*/)
         auto sortToggle = m_proxyModel->sortOrder() == Qt::AscendingOrder ? Qt::DescendingOrder : Qt::AscendingOrder;
         if (action == sortUsername)
         {
-            ui.usersTreeView->header()->setSortIndicator(COLUMN_INDEX_USERNAME, m_proxyModel->sortColumn() == COLUMN_INDEX_USERNAME ? sortToggle : Qt::AscendingOrder);
+            ui.usersTableView->horizontalHeader()->setSortIndicator(COLUMN_INDEX_USERNAME, m_proxyModel->sortColumn() == COLUMN_INDEX_USERNAME ? sortToggle : Qt::AscendingOrder);
             ttSettings->setValue(SETTINGS_DISPLAY_USERACCOUNT_SORT, username);
         }
         else if (action == sortUserType)
         {
-            ui.usersTreeView->header()->setSortIndicator(COLUMN_INDEX_USERTYPE, m_proxyModel->sortColumn() == COLUMN_INDEX_USERTYPE ? sortToggle : Qt::AscendingOrder);
+            ui.usersTableView->horizontalHeader()->setSortIndicator(COLUMN_INDEX_USERTYPE, m_proxyModel->sortColumn() == COLUMN_INDEX_USERTYPE ? sortToggle : Qt::AscendingOrder);
             ttSettings->setValue(SETTINGS_DISPLAY_USERACCOUNT_SORT, usertype);
         }
         else if (action == sortChannel)
         {
-            ui.usersTreeView->header()->setSortIndicator(COLUMN_INDEX_CHANNEL, m_proxyModel->sortColumn() == COLUMN_INDEX_CHANNEL? sortToggle : Qt::AscendingOrder);
+            ui.usersTableView->horizontalHeader()->setSortIndicator(COLUMN_INDEX_CHANNEL, m_proxyModel->sortColumn() == COLUMN_INDEX_CHANNEL? sortToggle : Qt::AscendingOrder);
             ttSettings->setValue(SETTINGS_DISPLAY_USERACCOUNT_SORT, channel);
         }
         else if (action == sortModified)
         {
-            ui.usersTreeView->header()->setSortIndicator(COLUMN_INDEX_MODIFIED, m_proxyModel->sortColumn() == COLUMN_INDEX_MODIFIED ? sortToggle : Qt::AscendingOrder);
+            ui.usersTableView->horizontalHeader()->setSortIndicator(COLUMN_INDEX_MODIFIED, m_proxyModel->sortColumn() == COLUMN_INDEX_MODIFIED ? sortToggle : Qt::AscendingOrder);
             ttSettings->setValue(SETTINGS_DISPLAY_USERACCOUNT_SORT, modified);
         }
         else if (action == delUser)
