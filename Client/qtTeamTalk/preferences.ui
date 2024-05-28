@@ -1813,13 +1813,6 @@
             <item row="7" column="1">
              <widget class="QComboBox" name="ttsOutputModeComboBox"/>
             </item>
-            <item row="8" column="0">
-             <widget class="QCheckBox" name="ttsSpeakListsChkBox">
-              <property name="text">
-               <string>Speak selected item in lists</string>
-              </property>
-             </widget>
-            </item>
             <item row="9" column="0">
              <widget class="QCheckBox" name="ttsForceSapiChkBox">
               <property name="text">
