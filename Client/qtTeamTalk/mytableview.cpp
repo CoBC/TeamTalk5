@@ -17,9 +17,14 @@
 
 #include "mytableview.h"
 #include <QAccessible>
+#include <QShortcut>
 
 MyTableView::MyTableView(QWidget* parent/* = nullptr*/) : QTableView(parent)
 {
+    QShortcut* shortcutLeft = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Left), this);
+    connect(shortcutLeft, &QShortcut::activated, this, &MyTableView::moveColumnLeft);
+    QShortcut* shortcutRight = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Right), this);
+    connect(shortcutRight, &QShortcut::activated, this, &MyTableView::moveColumnRight);
 }
 
 void MyTableView::keyPressEvent(QKeyEvent* e)
@@ -46,5 +51,49 @@ void MyTableView::keyPressEvent(QKeyEvent* e)
     else
     {
         QTableView::keyPressEvent(e);
+    }
+}
+
+/*void MyTableView::moveColumnLeft()
+{
+    int col = this->currentIndex().column();
+    int visualIndex = this->horizontalHeader()->visualIndex(col);
+    if (visualIndex > 0)
+    {
+        this->horizontalHeader()->moveSection(visualIndex, visualIndex - 1);
+        this->setCurrentIndex(m_proxyModel->index(ui.tableView->currentIndex().row(), ui.tableView->horizontalHeader()->logicalIndex(visualIndex - 1)));
+    }
+}
+
+void MyTableView::moveColumnRight()
+{
+    int col = this->currentIndex().column();
+    int visualIndex = this->horizontalHeader()->visualIndex(col);
+    if (visualIndex < this->model()->columnCount() - 1)
+    {
+        this->horizontalHeader()->moveSection(visualIndex, visualIndex + 1);
+        this->setCurrentIndex(m_proxyModel->index(ui.tableView->currentIndex().row(), ui.tableView->horizontalHeader()->logicalIndex(visualIndex + 1)));
+    }
+}*/
+
+void MyTableView::moveColumnLeft()
+{
+    int col = this->currentIndex().column();
+    int visualIndex = this->horizontalHeader()->visualIndex(col);
+    if (visualIndex > 0)
+    {
+        this->horizontalHeader()->moveSection(visualIndex, visualIndex - 1);
+        this->setCurrentIndex(this->model()->index(this->currentIndex().row(), this->horizontalHeader()->logicalIndex(visualIndex - 1)));
+    }
+}
+
+void MyTableView::moveColumnRight()
+{
+    int col = this->currentIndex().column();
+    int visualIndex = this->horizontalHeader()->visualIndex(col);
+    if (visualIndex < this->model()->columnCount() - 1)
+    {
+        this->horizontalHeader()->moveSection(visualIndex, visualIndex + 1);
+        this->setCurrentIndex(this->model()->index(this->currentIndex().row(), this->horizontalHeader()->logicalIndex(visualIndex + 1)));
     }
 }

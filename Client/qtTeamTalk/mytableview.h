@@ -19,6 +19,7 @@
 #define MYTABLEVIEW_H
 
 #include <QTableView>
+#include <QHeaderView>
 #include <QKeyEvent>
 
 class MyTableView : public QTableView
@@ -29,6 +30,9 @@ public:
     MyTableView(QWidget* parent = nullptr);
 protected:
     void keyPressEvent(QKeyEvent* e) override;
+private:
+    void moveColumnLeft();
+    void moveColumnRight();
 };
 
 #endif
