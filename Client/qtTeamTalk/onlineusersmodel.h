@@ -20,6 +20,8 @@
 
 #include <QAbstractTableModel>
 #include <QVector>
+#include <QTableView>
+#include <QHeaderView>
 
 #include "common.h"
 
@@ -57,9 +59,11 @@ public:
     QVariant data(const QModelIndex &index, int role) const;
     QModelIndex index(int row, int column, const QModelIndex & parent = QModelIndex() ) const;
     QModelIndex parent(const QModelIndex& /*index */) const { return QModelIndex(); }
+    void setTableView(QTableView* view);
 private:
     typedef QMap<int, User> user_cache_t;
     user_cache_t m_users;
+    QTableView* tableView;
 };
 
 #endif

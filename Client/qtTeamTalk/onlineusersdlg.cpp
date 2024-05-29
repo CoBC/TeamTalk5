@@ -43,6 +43,7 @@ OnlineUsersDlg::OnlineUsersDlg(QWidget* parent/* = 0 */)
     connect(ui.keepDisconnectedUsersCheckBox, &QAbstractButton::clicked, this, &OnlineUsersDlg::slotUpdateSettings);
 
     m_model = new OnlineUsersModel(this);
+    m_model->setTableView(ui.tableView);
     m_proxyModel = new QSortFilterProxyModel(this);
     m_proxyModel->setSourceModel(m_model);
     ui.tableView->setModel(m_proxyModel);
@@ -67,6 +68,7 @@ OnlineUsersDlg::OnlineUsersDlg(QWidget* parent/* = 0 */)
     m_proxyModel->setSortCaseSensitivity(Qt::CaseInsensitive);
     m_proxyModel->sort(COLUMN_NICKNAME, Qt::AscendingOrder);
     ui.tableView->horizontalHeader()->restoreState(ttSettings->value(SETTINGS_DISPLAY_ONLINEUSERS_HEADERSIZES).toByteArray());
+    ui.tableView->horizontalHeader()->setSectionsMovable(true);
 }
 
 OnlineUsersDlg::~OnlineUsersDlg()
