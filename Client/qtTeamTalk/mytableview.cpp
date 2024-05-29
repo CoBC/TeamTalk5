@@ -35,7 +35,6 @@ void MyTableView::keyPressEvent(QKeyEvent* e)
         if (currentIndex.isValid())
         {
             emit this->doubleClicked(currentIndex);
-//            QAccessible::updateAccessibility(this, currentIndex, QAccessible::ValueChanged);
             QVariant value = currentIndex.data(Qt::CheckStateRole);
             if (value.isValid() && value.canConvert<Qt::CheckState>())
             {
@@ -53,28 +52,6 @@ void MyTableView::keyPressEvent(QKeyEvent* e)
         QTableView::keyPressEvent(e);
     }
 }
-
-/*void MyTableView::moveColumnLeft()
-{
-    int col = this->currentIndex().column();
-    int visualIndex = this->horizontalHeader()->visualIndex(col);
-    if (visualIndex > 0)
-    {
-        this->horizontalHeader()->moveSection(visualIndex, visualIndex - 1);
-        this->setCurrentIndex(m_proxyModel->index(ui.tableView->currentIndex().row(), ui.tableView->horizontalHeader()->logicalIndex(visualIndex - 1)));
-    }
-}
-
-void MyTableView::moveColumnRight()
-{
-    int col = this->currentIndex().column();
-    int visualIndex = this->horizontalHeader()->visualIndex(col);
-    if (visualIndex < this->model()->columnCount() - 1)
-    {
-        this->horizontalHeader()->moveSection(visualIndex, visualIndex + 1);
-        this->setCurrentIndex(m_proxyModel->index(ui.tableView->currentIndex().row(), ui.tableView->horizontalHeader()->logicalIndex(visualIndex + 1)));
-    }
-}*/
 
 void MyTableView::moveColumnLeft()
 {
