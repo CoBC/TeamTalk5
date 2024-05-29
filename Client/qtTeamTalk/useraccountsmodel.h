@@ -22,6 +22,8 @@
 
 #include <QAbstractTableModel>
 #include <QSortFilterProxyModel>
+#include <QTableView>
+#include <QHeaderView>
 
 enum
 {
@@ -50,8 +52,10 @@ public:
     void delRegUser(int index);
     void delRegUser(const QString& username);
     const useraccounts_t& getUsers() const { return m_users; }
+    void setTableView(QTableView* view);
 private:
     useraccounts_t m_users;
+    QTableView* tableView;
 };
 
 class UserRightsModel : public QAbstractTableModel
