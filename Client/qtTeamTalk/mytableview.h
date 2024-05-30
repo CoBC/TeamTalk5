@@ -21,6 +21,7 @@
 #include <QTableView>
 #include <QHeaderView>
 #include <QKeyEvent>
+#include <QAccessibleInterface>
 
 class MyTableView : public QTableView
 {
@@ -28,11 +29,44 @@ class MyTableView : public QTableView
 
 public:
     MyTableView(QWidget* parent = nullptr);
+
 protected:
     void keyPressEvent(QKeyEvent* e) override;
+
 private:
     void moveColumnLeft();
     void moveColumnRight();
+    void initializeAccessibility();
 };
 
-#endif
+class CustomAccessibleTable : public QAccessibleInterface
+{
+public:
+    CustomAccessibleTable(QTableView* tableView)
+        : m_tableView(tableView) {}
+
+    int rowCount() const;
+    int columnCount() const;
+    QAccessibleInterface* cellAt(int row, int column) const;
+
+    // Implémentations nécessaires pour QAccessibleInterface
+    QRect rect() const override;
+    QAccessibleInterface* childAt(int x, int y) const override;
+    int navigate(QAccessible::RelationFlag rel, int entry, QAccessibleInterface** target) const; // Supprimer le spécificateur override
+    int indexOfChild(const QAccessibleInterface* child) const override;
+    QAccessibleInterface* focusChild() const override;
+    QAccessibleInterface* parent() const override;
+    QAccessible::Role role() const override;
+    QAccessible::State state() const override;
+    QString text(QAccessible::Text t) const override;
+    void setText(QAccessible::Text t, const QString& text) override;
+
+    bool isValid() const override;
+    QObject* object() const override;
+    QAccessibleInterface* child(int index) const override;
+    int childCount() const override;
+
+private:
+    QTableView* m_tableView;
+};
+#endif // MYTABLEVIEW_H

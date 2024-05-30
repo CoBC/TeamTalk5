@@ -25,6 +25,19 @@ MyTableView::MyTableView(QWidget* parent/* = nullptr*/) : QTableView(parent)
     connect(shortcutLeft, &QShortcut::activated, this, &MyTableView::moveColumnLeft);
     QShortcut* shortcutRight = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Right), this);
     connect(shortcutRight, &QShortcut::activated, this, &MyTableView::moveColumnRight);
+
+    initializeAccessibility();
+}
+
+void MyTableView::initializeAccessibility()
+{
+    QAccessible::installFactory([](const QString &className, QObject *object) -> QAccessibleInterface* {
+        if (className == QLatin1String("QTableView") && qobject_cast<QTableView*>(object))
+        {
+            return new CustomAccessibleTable(qobject_cast<QTableView*>(object));
+        }
+        return nullptr;
+    });
 }
 
 void MyTableView::keyPressEvent(QKeyEvent* e)
@@ -74,6 +87,9 @@ void MyTableView::keyPressEvent(QKeyEvent* e)
 
 void MyTableView::moveColumnLeft()
 {
+    if (!this->horizontalHeader()->sectionsMovable())
+        return;
+
     int col = this->currentIndex().column();
     int visualIndex = this->horizontalHeader()->visualIndex(col);
     if (visualIndex > 0)
@@ -85,6 +101,9 @@ void MyTableView::moveColumnLeft()
 
 void MyTableView::moveColumnRight()
 {
+    if (!this->horizontalHeader()->sectionsMovable())
+        return;
+
     int col = this->currentIndex().column();
     int visualIndex = this->horizontalHeader()->visualIndex(col);
     if (visualIndex < this->model()->columnCount() - 1)
@@ -92,4 +111,113 @@ void MyTableView::moveColumnRight()
         this->horizontalHeader()->moveSection(visualIndex, visualIndex + 1);
         this->setCurrentIndex(this->model()->index(this->currentIndex().row(), this->horizontalHeader()->logicalIndex(visualIndex + 1)));
     }
+}
+
+int CustomAccessibleTable::rowCount() const
+{
+    return m_tableView->model()->rowCount();
+}
+
+int CustomAccessibleTable::columnCount() const
+{
+    return m_tableView->model()->columnCount();
+}
+
+QAccessibleInterface* CustomAccessibleTable::cellAt(int row, int column) const
+{
+    if (row < 0 || column < 0 || row >= rowCount() || column >= columnCount())
+        return nullptr;
+
+    QModelIndex index = m_tableView->model()->index(row, column);
+    if (!index.isValid())
+        return nullptr;
+
+    return QAccessible::queryAccessibleInterface(m_tableView->viewport());
+}
+
+// Implémentation des méthodes nécessaires pour QAccessibleInterface
+QRect CustomAccessibleTable::rect() const
+{
+    return m_tableView->rect();
+}
+
+QAccessibleInterface* CustomAccessibleTable::childAt(int x, int y) const
+{
+    QModelIndex index = m_tableView->indexAt(QPoint(x, y));
+    if (!index.isValid())
+        return nullptr;
+
+    return cellAt(index.row(), index.column());
+}
+
+int CustomAccessibleTable::navigate(QAccessible::RelationFlag /*rel*/, int /*entry*/, QAccessibleInterface** /*target*/) const
+{
+    return -1; // Implémentation simple, peut être améliorée si nécessaire
+}
+
+int CustomAccessibleTable::indexOfChild(const QAccessibleInterface* child) const
+{
+    return -1; // Implémentation simple, peut être améliorée si nécessaire
+}
+
+QAccessibleInterface* CustomAccessibleTable::focusChild() const
+{
+    return nullptr; // Implémentation simple, peut être améliorée si nécessaire
+}
+
+QAccessibleInterface* CustomAccessibleTable::parent() const
+{
+    return QAccessible::queryAccessibleInterface(m_tableView->parentWidget());
+}
+
+QAccessible::Role CustomAccessibleTable::role() const
+{
+    return QAccessible::Table;
+}
+
+QAccessible::State CustomAccessibleTable::state() const
+{
+    return QAccessible::State();
+}
+
+QString CustomAccessibleTable::text(QAccessible::Text t) const
+{
+    switch (t)
+    {
+    case QAccessible::Name:
+        return m_tableView->objectName();
+    default:
+        return QString();
+    }
+}
+
+void CustomAccessibleTable::setText(QAccessible::Text t, const QString& text)
+{
+    if (t == QAccessible::Name)
+        m_tableView->setObjectName(text);
+}
+
+bool CustomAccessibleTable::isValid() const
+{
+    return m_tableView != nullptr;
+}
+
+QObject* CustomAccessibleTable::object() const
+{
+    return m_tableView;
+}
+
+QAccessibleInterface* CustomAccessibleTable::child(int index) const
+{
+    if (index < 0 || index >= childCount())
+        return nullptr;
+
+    int row = index / columnCount();
+    int col = index % columnCount();
+    return cellAt(row, col);
+}
+
+int CustomAccessibleTable::childCount() const
+{
+    return rowCount() * columnCount();
 }
