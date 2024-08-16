@@ -5,6 +5,7 @@
 Version 5.17.1, unreleased
 Default Qt Client
 - Option to use TeamTalk Sound Output device for default sound event playback mode
+- Support "{username}" variable for majority of TTS and status events related to user action
 Android Client
 -
 iOS Client
