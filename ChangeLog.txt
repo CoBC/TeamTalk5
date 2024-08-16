@@ -4,7 +4,7 @@
 
 Version 5.17.1, unreleased
 Default Qt Client
--
+- Fixed language not set at first start
 Android Client
 -
 iOS Client
