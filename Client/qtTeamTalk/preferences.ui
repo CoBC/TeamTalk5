@@ -1416,6 +1416,13 @@
             <item>
              <widget class="QComboBox" name="sndeventPlaybackComboBox"/>
             </item>
+            <item>
+             <widget class="QCheckBox" name="ttDeviceChkBox">
+              <property name="text">
+               <string>Use TeamTalk Sound Output Device for Sound Events Playback</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
           <item>
