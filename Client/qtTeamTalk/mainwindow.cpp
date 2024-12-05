@@ -3697,11 +3697,10 @@ void MainWindow::enableHotKey(HotKeyID id, const hotkey_t& hk)
 #if defined(Q_OS_WIN32)
     TT_HotKey_Register(ttInst, id, &hk[0], INT32(hk.size()));
 
-#elif defined(Q_OS_LINUX) && QT_VERSION < QT_VERSION_CHECK(6,0,0)
+#elif defined(Q_OS_LINUX) && QT_VERSION >= QT_VERSION_CHECK(6,0,0)
 
     Display* display = QX11Info::display();
-    Window x11window = QX11Info::appRootWindow();
-
+    Window x11window = QApplication::topLevelWindows().first()->winId();
     keycomp_t keycomp;
     quint32 mods = 0, keycode = 0;
     for(int i=0;i<hk.size();i++)
@@ -3726,12 +3725,10 @@ void MainWindow::enableHotKey(HotKeyID id, const hotkey_t& hk)
             break;
         }
     }
-
     m_hotkeys.insert(id, keycomp);
     Bool owner = True;
     int pointer = GrabModeAsync;
     int keyboard = GrabModeAsync;
-
     // no way to check for success
     XGrabKey(display, keycode, mods, x11window, owner, pointer, keyboard);
     // allow numlock
@@ -3781,11 +3778,10 @@ void MainWindow::disableHotKey(HotKeyID id)
 
     TT_HotKey_Unregister(ttInst, id);
 
-#elif defined(Q_OS_LINUX) && QT_VERSION < QT_VERSION_CHECK(6,0,0)
+#elif defined(Q_OS_LINUX) && QT_VERSION >= QT_VERSION_CHECK(6,0,0)
 
     Display* display = QX11Info::display();
-    Window window = QX11Info::appRootWindow();
-
+    Window window = QApplication::topLevelWindows().first()->winId();
     reghotkeys_t::iterator hk_ite = m_hotkeys.find(id);
     if(hk_ite != m_hotkeys.end())
     {
@@ -3815,7 +3811,6 @@ void MainWindow::disableHotKey(HotKeyID id)
         XUngrabKey(display, keycode, mods, window);
         XUngrabKey(display, keycode, mods | Mod2Mask, window);
     }
-
     m_hotkeys.remove(id);
 
 #elif defined(Q_OS_DARWIN)
