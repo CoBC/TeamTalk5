@@ -3699,10 +3699,7 @@ void MainWindow::enableHotKey(HotKeyID id, const hotkey_t& hk)
 
 #elif defined(Q_OS_LINUX) && QT_VERSION >= QT_VERSION_CHECK(6,0,0)
 
-    Display* display = static_cast<Display*>(
-        QGuiApplication::platformNativeInterface()->nativeResourceForIntegration("display")
-    );
-    
+    Display* display = XOpenDisplay(nullptr);
     Window x11window = RootWindow(display, DefaultScreen(display));
     keycomp_t keycomp;
     quint32 mods = 0, keycode = 0;
@@ -3783,10 +3780,7 @@ void MainWindow::disableHotKey(HotKeyID id)
 
 #elif defined(Q_OS_LINUX) && QT_VERSION >= QT_VERSION_CHECK(6,0,0)
 
-    Display* display = static_cast<Display*>(
-        QGuiApplication::platformNativeInterface()->nativeResourceForIntegration("display")
-    );
-    
+    Display* display = XOpenDisplay(nullptr);
     Window x11window = RootWindow(display, DefaultScreen(display));
     reghotkeys_t::iterator hk_ite = m_hotkeys.find(id);
     if(hk_ite != m_hotkeys.end())
