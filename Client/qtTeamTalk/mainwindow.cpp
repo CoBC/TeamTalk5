@@ -3808,8 +3808,8 @@ void MainWindow::disableHotKey(HotKeyID id)
             }
             ite++;
         }
-        XUngrabKey(display, keycode, mods, window);
-        XUngrabKey(display, keycode, mods | Mod2Mask, window);
+        XUngrabKey(display, keycode, mods, x11window);
+        XUngrabKey(display, keycode, mods | Mod2Mask, x11window);
     }
     m_hotkeys.remove(id);
 
