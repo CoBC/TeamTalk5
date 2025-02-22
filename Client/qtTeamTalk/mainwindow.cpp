@@ -3697,31 +3697,30 @@ void MainWindow::enableHotKey(HotKeyID id, const hotkey_t& hk)
 #if defined(Q_OS_WIN32)
     TT_HotKey_Register(ttInst, id, &hk[0], INT32(hk.size()));
 
-#elif defined(Q_OS_LINUX) && QT_VERSION < QT_VERSION_CHECK(6,0,0)
-
-    Display* display = QX11Info::display();
-    Window x11window = QX11Info::appRootWindow();
+#elif defined(Q_OS_LINUX) && QT_VERSION >= QT_VERSION_CHECK(6,0,0)
+    auto native = QGuiApplication::platformNativeInterface();
+    Display* display = static_cast<Display*>(native->nativeResourceForIntegration("display"));
+    Window x11window = DefaultRootWindow(display);
 
     keycomp_t keycomp;
     quint32 mods = 0, keycode = 0;
-    for(int i=0;i<hk.size();i++)
-    {
-        switch(hk[i])
-        {
-        case Qt::CTRL :
+    for (int i = 0; i < hk.size(); i++) {
+        switch (hk[i]) {
+        case Qt::CTRL:
             mods |= ControlMask;
             keycomp.insert(ControlMask);
             break;
-        case Qt::ALT :
+        case Qt::ALT:
             mods |= Mod1Mask;
             keycomp.insert(Mod1Mask);
             break;
-        case Qt::SHIFT :
+        case Qt::SHIFT:
             mods |= ShiftMask;
             keycomp.insert(ShiftMask);
             break;
         default:
-            keycode = XKeysymToKeycode(display, XStringToKeysym(QKeySequence(hk[i]).toString().toLatin1().data()));  
+            keycode = XKeysymToKeycode(display,
+                        XStringToKeysym(QKeySequence(hk[i]).toString().toLatin1().data()));
             keycomp.insert(keycode);
             break;
         }
@@ -3732,9 +3731,7 @@ void MainWindow::enableHotKey(HotKeyID id, const hotkey_t& hk)
     int pointer = GrabModeAsync;
     int keyboard = GrabModeAsync;
 
-    // no way to check for success
     XGrabKey(display, keycode, mods, x11window, owner, pointer, keyboard);
-    // allow numlock
     XGrabKey(display, keycode, mods | Mod2Mask, x11window, owner, pointer, keyboard);
 
 #elif defined(Q_OS_DARWIN)
