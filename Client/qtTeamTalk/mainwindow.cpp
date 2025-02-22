@@ -3700,9 +3700,10 @@ void MainWindow::enableHotKey(HotKeyID id, const hotkey_t& hk)
     TT_HotKey_Register(ttInst, id, &hk[0], INT32(hk.size()));
 
 #elif defined(Q_OS_LINUX) && QT_VERSION >= QT_VERSION_CHECK(6,0,0)
-    Display* display = XOpenDisplay(nullptr);
+    auto native = QGuiApplication::platformNativeInterface();
+    Display* display = static_cast<Display*>(native->nativeResourceForIntegration("display"));
     if (!display) {
-        qWarning("Impossible d'ouvrir le display X");
+        qWarning("Impossible d'obtenir le Display via l'interface native.");
         return;
     }
     Window root = DefaultRootWindow(display);
