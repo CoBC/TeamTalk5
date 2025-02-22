@@ -66,6 +66,7 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QGuiApplication>
+#include <QPlatformNativeInterface>
 #include <QKeyEvent>
 #include <QCloseEvent>
 #include <QClipboard>
