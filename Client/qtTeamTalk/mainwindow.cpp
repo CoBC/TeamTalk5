@@ -66,7 +66,6 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QGuiApplication>
-#include <QtXcbExtras/QXcbNativeInterface>
 #include <QKeyEvent>
 #include <QCloseEvent>
 #include <QClipboard>
@@ -79,6 +78,8 @@
 #if defined(Q_OS_LINUX) //For hotkeys and DBus on X11
 #include <QtDBus/QtDBus>
 #include <X11/Xlib.h>
+#include <X11/XKBlib.h>
+#include <X11/keysym.h>
 #include <X11/Xutil.h>
 #if QT_VERSION < QT_VERSION_CHECK(6,0,0)
 #include <QX11Info>
@@ -3699,10 +3700,12 @@ void MainWindow::enableHotKey(HotKeyID id, const hotkey_t& hk)
     TT_HotKey_Register(ttInst, id, &hk[0], INT32(hk.size()));
 
 #elif defined(Q_OS_LINUX) && QT_VERSION >= QT_VERSION_CHECK(6,0,0)
-    QXcbNativeInterface* nativeInterface = 
-        static_cast<QXcbNativeInterface*>(QGuiApplication::platformNativeInterface());
-    Display* display = nativeInterface->display();
-    Window x11window = DefaultRootWindow(display);
+    Display* display = XOpenDisplay(nullptr);
+    if (!display) {
+        qWarning("Impossible d'ouvrir le display X");
+        return;
+    }
+    Window root = DefaultRootWindow(display);
 
     keycomp_t keycomp;
     quint32 mods = 0, keycode = 0;
@@ -3722,20 +3725,16 @@ void MainWindow::enableHotKey(HotKeyID id, const hotkey_t& hk)
             break;
         default:
             keycode = XKeysymToKeycode(display,
-                        XStringToKeysym(QKeySequence(hk[i]).toString().toLatin1().data()));
+                           XStringToKeysym(QKeySequence(hk[i]).toString().toLatin1().data()));
             keycomp.insert(keycode);
             break;
         }
     }
-
+    
     m_hotkeys.insert(id, keycomp);
-    Bool owner = True;
-    int pointer = GrabModeAsync;
-    int keyboard = GrabModeAsync;
-
-    XGrabKey(display, keycode, mods, x11window, owner, pointer, keyboard);
-    XGrabKey(display, keycode, mods | Mod2Mask, x11window, owner, pointer, keyboard);
-
+    XGrabKey(display, keycode, mods, root, True, GrabModeAsync, GrabModeAsync);
+    XGrabKey(display, keycode, mods | Mod2Mask, root, True, GrabModeAsync, GrabModeAsync);
+    
 #elif defined(Q_OS_DARWIN)
 
     if(hk.empty() || hk.size() != MAC_HOTKEY_SIZE)
