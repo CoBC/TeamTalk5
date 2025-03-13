@@ -1,15 +1,3 @@
-name: macOS
-
-on: [push]
-
-env:
-  # TeamTalk unit test environment variables
-  GITHUBSKIP: 1
-  INPUTDEVICEID: 1978
-  OUTPUTDEVICEID: 1978
-  VERBOSE: 0
-  VIDEODEVICEID: None
-
 jobs:
   build:
     runs-on: macos-latest
@@ -20,69 +8,42 @@ jobs:
     - uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
-        java-version: '11'
+        java-version: '17'
+
+    - name: Set up Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: 15.4
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v4
       with:
-        version: '6.5.*'
-        modules: 'qtmultimedia qtspeech'
-        cache-key-prefix: 'install-qt-action'
+        version: '6.7.0'
+        modules: 'qtwebengine qt5compat qtshadertools qtmultimedia qttools qttranslations qtimageformats qtmacextras qttexttospeech'
+        cache: 'true'
 
     - name: Install Toolchain Dependencies
-      working-directory: ${{runner.workspace}}/TeamTalk5/Build
       run: |
         brew update
-        make depend-mac
+        brew install cmake ninja
 
-    - name: Print env
-      run: printenv | sort
-
-    - name: Init TeamTalk Library submodules
-      working-directory: ${{runner.workspace}}/TeamTalk5
+    - name: Configure
+      working-directory: ${{runner.workspace}}/TeamTalk5/Build
       run: |
-        git submodule update --init --recursive
+        cmake .. -DCMAKE_CXX_COMPILER=$(which clang++) -DCMAKE_OBJCXX_COMPILER=$(which clang++) -DFEATURE_WEBRTC=OFF -DFEATURE_PORTAUDIO=OFF -DBUILD_TEAMTALK_LIBRARY_UNITTEST_CATCH2=OFF
 
-    - name: Install TeamTalk Library Dependencies
-      run: brew install doxygen
-
-    - name: Build TeamTalk Library and Apps
-      working-directory: ${{runner.workspace}}/TeamTalk5
-      shell: bash
+    - name: Build
+      working-directory: ${{runner.workspace}}/TeamTalk5/Build
       run: |
-        make CMAKE_EXTRA="-DFEATURE_WEBRTC=OFF -DFEATURE_PORTAUDIO=OFF -DBUILD_TEAMTALK_LIBRARY_UNITTEST_CATCH2=ON -DBUILD_TEAMTALK_LIBRARY_UNITTEST_CATCH2_PERF=OFF -DBUILD_TEAMTALK_CLIENT_QTTEAMTALK_PRODUCT=ON -DCMAKE_INSTALL_PREFIX=${{runner.workspace}}/install" -C Build mac
+        cmake --build .
 
-    - name: Start TeamTalk Standard Server
-      working-directory: ${{runner.workspace}}/TeamTalk5
+    - name: Run CMake Install
+      working-directory: ${{runner.workspace}}/TeamTalk5/Build
       run: |
-        cp Library/TeamTalkLib/test/tt5srv.xml_template Server/tt5srv.xml
-        Server/tt5srv -d -c Server/tt5srv.xml
-
-    - name: Start TeamTalk Pro Server (encrypted)
-      working-directory: ${{runner.workspace}}/TeamTalk5
-      run: |
-        cp -f Library/TeamTalkLib/test/tt5prosrv.xml_template Server/tt5prosrv.xml
-        cp Library/TeamTalkLib/test/ttservercert.pem Server/
-        cp Library/TeamTalkLib/test/ttserverkey.pem Server/
-        cp Library/TeamTalkLib/test/ca.cer Server/
-        Server/tt5prosrv -d -wd Server/
-
-    - name: Catch unit-test
-      working-directory: ${{runner.workspace}}/TeamTalk5/Library/TeamTalkLib/test
-      run: catchtt.app/Contents/MacOS/catchtt --durations yes
-
-    - name: Stop TeamTalk Pro Server
-      run: killall tt5prosrv
-
-    - name: Stop TeamTalk Standard Server
-      run: killall tt5srv
-
-    - name: Run CMake Install Target
-      working-directory: ${{runner.workspace}}/TeamTalk5/Build/build-mac
-      run: cmake --build . --target install
+        cmake --install . --prefix "${{runner.workspace}}/install"
 
     - name: Upload TeamTalk Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: teamtalksdk-macos
-        path: ${{runner.workspace}}/install
+        name: teamtalk-artifacts
+        path: "${{runner.workspace}}/install"
