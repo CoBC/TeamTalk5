@@ -766,6 +766,4 @@ void showNotification(const QString &title, const QString &message)
         .arg(APPNAME_SHORT)
         .arg(noquote));
 }
-#elif defined(Q_OS_MAC)
-#include "utilui.mm"
 #endif
