@@ -1,49 +1,96 @@
+name: macOS
+
+on: [push]
+
+env:
+  GITHUBSKIP: 1
+  INPUTDEVICEID: 1978
+  OUTPUTDEVICEID: 1978
+  VERBOSE: 0
+  VIDEODEVICEID: None
+
 jobs:
   build:
     runs-on: macos-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '17'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
 
-    - name: Set up Xcode
-      uses: maxim-lobanov/setup-xcode@v1
-      with:
-        xcode-version: 15.4
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '15.4'
 
-    - name: Install Qt
-      uses: jurplel/install-qt-action@v4
-      with:
-        version: '6.7.0'
-        modules: 'qtwebengine qt5compat qtshadertools qtmultimedia qttools qttranslations qtimageformats qtmacextras qttexttospeech'
-        cache: 'true'
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.5.*'
+          modules: 'qtmultimedia qttexttospeech'
+          cache-key-prefix: 'install-qt-action'
 
-    - name: Install Toolchain Dependencies
-      run: |
-        brew update
-        brew install cmake ninja
+      - name: Install Toolchain Dependencies
+        run: |
+          brew update
+          brew install cmake ninja doxygen
 
-    - name: Configure
-      working-directory: ${{runner.workspace}}/TeamTalk5/Build
-      run: |
-        cmake .. -DCMAKE_CXX_COMPILER=$(which clang++) -DCMAKE_OBJCXX_COMPILER=$(which clang++) -DFEATURE_WEBRTC=OFF -DFEATURE_PORTAUDIO=OFF -DBUILD_TEAMTALK_LIBRARY_UNITTEST_CATCH2=OFF
+      - name: Print Environment
+        run: printenv | sort
 
-    - name: Build
-      working-directory: ${{runner.workspace}}/TeamTalk5/Build
-      run: |
-        cmake --build .
+      - name: Init TeamTalk Library submodules
+        working-directory: ${{ github.workspace }}
+        run: git submodule update --init --recursive
 
-    - name: Run CMake Install
-      working-directory: ${{runner.workspace}}/TeamTalk5/Build
-      run: |
-        cmake --install . --prefix "${{runner.workspace}}/install"
+      - name: Build TeamTalk Library and Apps
+        working-directory: ${{ github.workspace }}/Build
+        run: |
+          mkdir -p build-mac
+          cd build-mac
+          cmake ../.. \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DFEATURE_WEBRTC=OFF \
+            -DFEATURE_PORTAUDIO=OFF \
+            -DBUILD_TEAMTALK_LIBRARY_UNITTEST_CATCH2=ON \
+            -DBUILD_TEAMTALK_LIBRARY_UNITTEST_CATCH2_PERF=OFF \
+            -DBUILD_TEAMTALK_CLIENT_QTTEAMTALK_PRODUCT=ON \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install \
+            -DCMAKE_CXX_COMPILER=$(which clang++) \
+            -DCMAKE_OBJCXX_COMPILER=$(which clang++)
+          cmake --build . --config Release
 
-    - name: Upload TeamTalk Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: teamtalk-artifacts
-        path: "${{runner.workspace}}/install"
+      - name: Start TeamTalk Standard Server
+        working-directory: ${{ github.workspace }}
+        run: |
+          cp Library/TeamTalkLib/test/tt5srv.xml_template Server/tt5srv.xml
+          Server/tt5srv -d -c Server/tt5srv.xml
+
+      - name: Start TeamTalk Pro Server (encrypted)
+        working-directory: ${{ github.workspace }}
+        run: |
+          cp -f Library/TeamTalkLib/test/tt5prosrv.xml_template Server/tt5prosrv.xml
+          cp Library/TeamTalkLib/test/{ttservercert.pem,ttserverkey.pem,ca.cer} Server/
+          Server/tt5prosrv -d -wd Server/
+
+      - name: Run Catch unit-tests
+        working-directory: ${{ github.workspace }}/Library/TeamTalkLib/test
+        run: catchtt.app/Contents/MacOS/catchtt --durations yes
+
+      - name: Stop TeamTalk Pro Server
+        run: killall tt5prosrv || true
+
+      - name: Stop TeamTalk Standard Server
+        run: killall tt5srv || true
+
+      - name: Run CMake Install
+        working-directory: ${{ github.workspace }}/Build/build-mac
+        run: cmake --build . --target install --config Release
+
+      - name: Upload TeamTalk Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: teamtalksdk-macos
+          path: ${{ github.workspace }}/install
